@@ -1,0 +1,146 @@
+version: "3"
+
+services:
+  rome-evm:
+    container_name: rome-evm
+    image: romelabs/rome-evm:${ROME_EVM_TAG:-latest}
+    environment:
+      SOLANA_RPC: ${SOLANA_RPC}
+      CHAIN_ID: ${CHAIN_ID}
+    volumes:
+      - ./keys/rome-keypair.json:/opt/rome-keypair.json
+      - ./keys/rome-evm-owner.json:/opt/rome-evm-owner.json
+    entrypoint: 'bash -c \ "solana-keygen new -o /root/.config/solana/id.json --force --no-bip39-passphrase && solana program deploy -u ${SOLANA_RPC} --program-id /opt/rome-keypair.json --upgrade-authority /opt/rome-evm-owner.json --fee-payer /opt/rome-evm-owner.json /opt/rome_evm.so"'
+    networks:
+      - net
+
+  reg_rollup:
+    container_name: reg_rollup
+    image: romelabs/rome-apps:${CLI_TAG:-latest}
+    environment:
+      SOLANA_RPC: ${SOLANA_RPC}
+      CHAIN_ID: ${CHAIN_ID}
+      SERVICE_NAME: cli.sh
+      COMMAND: reg-rollup
+      PROGRAM_KEYPAIR: /opt/rome-keypair.json
+      ROLLUP_OWNER: /opt/rollup-owner-keypair.json
+      UPGRADE_AUTHORITY: /opt/rome-evm-owner.json
+    volumes:
+      - ./keys/rome-keypair.json:/opt/rome-keypair.json
+      - ./keys/rollup-owner-keypair.json:/opt/rollup-owner-keypair.json
+      - ./keys/rome-evm-owner.json:/opt/rome-evm-owner.json
+    networks:
+      - net
+
+  create_balance:
+    container_name: create_balance
+    image: romelabs/rome-apps:${CLI_TAG:-latest}
+    environment:
+      SOLANA_RPC: ${SOLANA_RPC}
+      CHAIN_ID: ${CHAIN_ID}
+      SERVICE_NAME: cli.sh
+      COMMAND: create-balance
+      ADDRESS: ${GENESIS_ADDRESS}
+      BALANCE: ${GENESIS_BALANCE}
+      PROGRAM_KEYPAIR: /opt/rome-keypair.json
+      KEYPAIR: /opt/rollup-owner-keypair.json
+    volumes:
+      - ./keys/rome-keypair.json:/opt/rome-keypair.json
+      - ./keys/rollup-owner-keypair.json:/opt/rollup-owner-keypair.json
+    networks:
+      - net
+
+  reg_gas_recipient_rhea:
+    container_name: reg_gas_recipient_rhea
+    image: romelabs/rome-apps:${CLI_TAG:-latest}
+    environment:
+      SOLANA_RPC: ${SOLANA_RPC}
+      CHAIN_ID: ${CHAIN_ID}
+      SERVICE_NAME: cli.sh
+      COMMAND: reg-gas-recipient
+      ADDRESS: ${RHEA_GAS_RECIPIENT}
+      KEYPAIR: /opt/rhea-sender.json
+      PROGRAM_KEYPAIR: /opt/rome-keypair.json
+    volumes:
+      - ./keys/rhea-sender.json:/opt/rhea-sender.json
+      - ./keys/rome-keypair.json:/opt/rome-keypair.json
+    command: 'bash -c "/opt/cli.sh"'
+    networks:
+      - net
+
+  reg_gas_recipient_proxy:
+    container_name: reg_gas_recipient_proxy
+    image: romelabs/rome-apps:${CLI_TAG:-latest}
+    environment:
+      SOLANA_RPC: ${SOLANA_RPC}
+      CHAIN_ID: ${CHAIN_ID}
+      SERVICE_NAME: cli.sh
+      COMMAND: reg-gas-recipient
+      ADDRESS: ${PROXY_GAS_RECIPIENT}
+      KEYPAIR: /opt/proxy-sender.json
+      PROGRAM_KEYPAIR: /opt/rome-keypair.json
+    volumes:
+      - ./keys/proxy-sender.json:/opt/proxy-sender.json
+      - ./keys/rome-keypair.json:/opt/rome-keypair.json
+    command: 'bash -c "/opt/cli.sh"'
+    networks:
+      - net
+
+  geth:
+    container_name: geth
+    image: romelabs/rollup-op-geth:${GETH_TAG:-latest}
+    hostname: geth
+    environment:
+      CHAIN_ID: ${CHAIN_ID}
+      GENESIS_ADDRESS: ${GENESIS_ADDRESS}
+      GENESIS_BALANCE: ${GENESIS_BALANCE}
+      GENESIS_PRIVATE_KEY: ${GENESIS_PRIVATE_KEY}
+      GETH_HOST: ${GETH_HOST}
+      JWT_SECRET: ${JWT_SECRET}
+      ROME_GASOMETER_URL: ${GASOMETER_HOST}
+    volumes:
+      - /etc/letsencrypt/live/${GETH_HOST}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
+      - /etc/letsencrypt/live/${GETH_HOST}/privkey.pem:/etc/nginx/ssl/selfsigned.key
+    ports:
+      - 443:443
+      - 8545:8545
+      - 8546:8546
+      - 8551:8551
+      - 3000:3000
+    networks:
+      - net
+
+  rhea:
+    container_name: rhea
+    image: romelabs/rome-apps:${RHEA_TAG:-latest}
+    hostname: rhea
+    environment:
+      SERVICE_NAME: rhea
+      RHEA_CONFIG: /opt/rhea-config.yml
+    volumes:
+      - ./cfg/rhea-config.yml:/opt/rhea-config.yml
+      - ./keys/rome-keypair.json:/opt/rome-keypair.json
+      - ./keys/rhea-sender.json:/opt/rhea-sender.json
+    networks:
+      - net
+
+  proxy:
+    container_name: proxy
+    image: romelabs/rome-apps:${PROXY_TAG:-latest}
+    hostname: proxy
+    environment:
+      SERVICE_NAME: proxy
+      PROXY_CONFIG: /opt/proxy-config.yml
+    volumes:
+      - ./cfg/proxy-config.yml:/opt/proxy-config.yml
+      - ./keys/rome-keypair.json:/opt/rome-keypair.json
+      - ./keys/proxy-sender.json:/opt/proxy-sender.json
+    ports:
+      - 9090:9090
+    expose:
+      - "9090"
+    networks:
+      - net
+
+networks:
+  net:
