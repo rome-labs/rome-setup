@@ -20,14 +20,12 @@ services:
     environment:
       SOLANA_RPC: ${SOLANA_RPC}
       CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli.sh
+      SERVICE_NAME: cli-deploy.sh
       COMMAND: reg-rollup
-      PROGRAM_KEYPAIR: /opt/rome-keypair.json
-      ROLLUP_OWNER: /opt/rollup-owner-keypair.json
+      PROGRAM_ID: ${PROGRAM_ID}
+      ROLLUP_OWNER_ID: ${ROLLUP_OWNER_ID}
       UPGRADE_AUTHORITY: /opt/rome-evm-owner.json
     volumes:
-      - ./keys/rome-keypair.json:/opt/rome-keypair.json
-      - ./keys/rollup-owner-keypair.json:/opt/rollup-owner-keypair.json
       - ./keys/rome-evm-owner.json:/opt/rome-evm-owner.json
     networks:
       - net
@@ -38,14 +36,13 @@ services:
     environment:
       SOLANA_RPC: ${SOLANA_RPC}
       CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli.sh
+      SERVICE_NAME: cli-deploy.sh
       COMMAND: create-balance
       ADDRESS: ${GENESIS_ADDRESS}
       BALANCE: ${GENESIS_BALANCE}
-      PROGRAM_KEYPAIR: /opt/rome-keypair.json
+      PROGRAM_ID: ${PROGRAM_ID}
       KEYPAIR: /opt/rollup-owner-keypair.json
     volumes:
-      - ./keys/rome-keypair.json:/opt/rome-keypair.json
       - ./keys/rollup-owner-keypair.json:/opt/rollup-owner-keypair.json
     networks:
       - net
@@ -56,14 +53,13 @@ services:
     environment:
       SOLANA_RPC: ${SOLANA_RPC}
       CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli.sh
+      SERVICE_NAME: cli-deploy.sh
       COMMAND: reg-gas-recipient
       ADDRESS: ${RHEA_GAS_RECIPIENT}
+      PROGRAM_ID: ${PROGRAM_ID}
       KEYPAIR: /opt/rhea-sender.json
-      PROGRAM_KEYPAIR: /opt/rome-keypair.json
     volumes:
       - ./keys/rhea-sender.json:/opt/rhea-sender.json
-      - ./keys/rome-keypair.json:/opt/rome-keypair.json
     command: 'bash -c "/opt/cli.sh"'
     networks:
       - net
@@ -74,14 +70,13 @@ services:
     environment:
       SOLANA_RPC: ${SOLANA_RPC}
       CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli.sh
+      SERVICE_NAME: cli-deploy.sh
       COMMAND: reg-gas-recipient
       ADDRESS: ${PROXY_GAS_RECIPIENT}
+      PROGRAM_ID: ${PROGRAM_ID}
       KEYPAIR: /opt/proxy-sender.json
-      PROGRAM_KEYPAIR: /opt/rome-keypair.json
     volumes:
       - ./keys/proxy-sender.json:/opt/proxy-sender.json
-      - ./keys/rome-keypair.json:/opt/rome-keypair.json
     command: 'bash -c "/opt/cli.sh"'
     networks:
       - net
