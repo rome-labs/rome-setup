@@ -10,7 +10,7 @@ services:
     volumes:
       - ./keys/rome-keypair.json:/opt/rome-keypair.json
       - ./keys/rome-evm-owner.json:/opt/rome-evm-owner.json
-    entrypoint: 'bash -c \ "solana-keygen new -o /root/.config/solana/id.json --force --no-bip39-passphrase && solana program deploy -u ${SOLANA_RPC} --program-id /opt/rome-keypair.json --upgrade-authority /opt/rome-evm-owner.json --fee-payer /opt/rome-evm-owner.json /opt/rome_evm.so"'
+    entrypoint: 'bash -c \ "solana program deploy -u ${SOLANA_RPC} --program-id /opt/rome-keypair.json -k /opt/rome-evm-owner.json /opt/rome_evm.so"'
     networks:
       - net
 
@@ -47,40 +47,6 @@ services:
     networks:
       - net
 
-  reg_gas_recipient_rhea:
-    container_name: reg_gas_recipient_rhea
-    image: romelabs/rome-apps:${CLI_TAG:-latest}
-    environment:
-      SOLANA_RPC: ${SOLANA_RPC}
-      CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli-deploy.sh
-      COMMAND: reg-gas-recipient
-      ADDRESS: ${RHEA_GAS_RECIPIENT}
-      PROGRAM_ID: ${PROGRAM_ID}
-      KEYPAIR: /opt/rhea-sender.json
-    volumes:
-      - ./keys/rhea-sender.json:/opt/rhea-sender.json
-    command: 'bash -c "/opt/cli.sh"'
-    networks:
-      - net
-
-  reg_gas_recipient_proxy:
-    container_name: reg_gas_recipient_proxy
-    image: romelabs/rome-apps:${CLI_TAG:-latest}
-    environment:
-      SOLANA_RPC: ${SOLANA_RPC}
-      CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli-deploy.sh
-      COMMAND: reg-gas-recipient
-      ADDRESS: ${PROXY_GAS_RECIPIENT}
-      PROGRAM_ID: ${PROGRAM_ID}
-      KEYPAIR: /opt/proxy-sender.json
-    volumes:
-      - ./keys/proxy-sender.json:/opt/proxy-sender.json
-    command: 'bash -c "/opt/cli.sh"'
-    networks:
-      - net
-
   geth:
     container_name: geth
     image: romelabs/rollup-op-geth:${GETH_TAG:-latest}
@@ -93,6 +59,7 @@ services:
       GETH_HOST: ${GETH_HOST}
       JWT_SECRET: ${JWT_SECRET}
       ROME_GASOMETER_URL: ${GASOMETER_HOST}
+      AIRDROP_TITLE: ${AIRDROP_TITLE}
     volumes:
       - /etc/letsencrypt/live/${GETH_HOST}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
       - /etc/letsencrypt/live/${GETH_HOST}/privkey.pem:/etc/nginx/ssl/selfsigned.key
@@ -114,8 +81,9 @@ services:
       RHEA_CONFIG: /opt/rhea-config.yml
     volumes:
       - ./cfg/rhea-config.yml:/opt/rhea-config.yml
-      - ./keys/rome-keypair.json:/opt/rome-keypair.json
       - ./keys/rhea-sender.json:/opt/rhea-sender.json
+      - ./keys/rhea-sender-2.json:/opt/rhea-sender-2.json
+      - ./keys/rhea-sender-3.json:/opt/rhea-sender-3.json
     networks:
       - net
 
@@ -128,8 +96,9 @@ services:
       PROXY_CONFIG: /opt/proxy-config.yml
     volumes:
       - ./cfg/proxy-config.yml:/opt/proxy-config.yml
-      - ./keys/rome-keypair.json:/opt/rome-keypair.json
       - ./keys/proxy-sender.json:/opt/proxy-sender.json
+      - ./keys/proxy-sender-2.json:/opt/proxy-sender-2.json
+      - ./keys/proxy-sender-3.json:/opt/proxy-sender-3.json
     ports:
       - 9090:9090
     expose:

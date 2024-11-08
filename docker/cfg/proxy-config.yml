@@ -3,7 +3,12 @@ start_slot: 0
 solana:
   rpc_url: "http://solana:8899"
   commitment: "confirmed"
-program_keypair: "/opt/rome-keypair.json"
-payer_keypair: "/opt/proxy-sender.json"
-number_holders: 256
+program_id: "RD2Gg7Lcnv62XmRHAzxh6fQQfMRzHtN5LeKPVBhYU5S"
 proxy_host: "0.0.0.0:9090"
+payers:
+  - payer_keypair: "/opt/proxy-sender.json"
+    number_holders: 4
+  - payer_keypair: "/opt/proxy-sender-2.json"
+    number_holders: 16
+  - payer_keypair: "/opt/proxy-sender-3.json"
+    number_holders: 64
