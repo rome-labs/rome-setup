@@ -1,0 +1,18 @@
+chain_id: 1001
+start_slot: 0
+solana:
+  rpc_url: "http://solana:8899"
+  commitment: "confirmed"
+program_id: "CmobH2vR6aUtQ8x4xd1LYNiH6k2G7PFT5StTgWqvy2VU"
+
+geth_engine:
+  geth_engine_addr: "http://geth:8551"
+  geth_engine_secret: "a535c9f4f9df8e00cd6a15a7baa74bb92ca47ebdf59b6f3f2d8a8324b6c1767c"
+solana_storage:
+  database_url: "postgres://hercules:qwerty123@postgres/test_rollup"
+  max_connections: 16
+  connection_timeout_sec: 30
+ethereum_storage:
+  type: "in_memory_storage"
+admin_rpc: "0.0.0.0:8000"
+max_slot_history: 4096

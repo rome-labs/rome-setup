@@ -1,38 +1,7 @@
-version: "3"
-
 services:
-  rome-evm:
-    container_name: rome-evm
-    image: romelabs/rome-evm:${ROME_EVM_TAG:-latest}
-    environment:
-      SOLANA_RPC: ${SOLANA_RPC}
-      CHAIN_ID: ${CHAIN_ID}
-    volumes:
-      - ./keys/rome-keypair.json:/opt/rome-keypair.json
-      - ./keys/rome-evm-owner.json:/opt/rome-evm-owner.json
-    entrypoint: 'bash -c \ "solana program deploy -u ${SOLANA_RPC} --program-id /opt/rome-keypair.json -k /opt/rome-evm-owner.json /opt/rome_evm.so"'
-    networks:
-      - net
-
-  reg_rollup:
-    container_name: reg_rollup
-    image: romelabs/rome-apps:${CLI_TAG:-latest}
-    environment:
-      SOLANA_RPC: ${SOLANA_RPC}
-      CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli-deploy.sh
-      COMMAND: reg-rollup
-      PROGRAM_ID: ${PROGRAM_ID}
-      ROLLUP_OWNER_ID: ${ROLLUP_OWNER_ID}
-      UPGRADE_AUTHORITY: /opt/rome-evm-owner.json
-    volumes:
-      - ./keys/rome-evm-owner.json:/opt/rome-evm-owner.json
-    networks:
-      - net
-
   create_balance:
     container_name: create_balance
-    image: romelabs/rome-apps:${CLI_TAG:-latest}
+    image: romeprotocol/rome-apps:${CLI_TAG:-latest}
     environment:
       SOLANA_RPC: ${SOLANA_RPC}
       CHAIN_ID: ${CHAIN_ID}
@@ -47,49 +16,42 @@ services:
     networks:
       - net
 
-  geth:
-    container_name: geth
-    image: romelabs/rollup-op-geth:${GETH_TAG:-latest}
-    hostname: geth
+  postgres:
+    container_name: postgres
+    image: postgres:15
+    command: postgres -c 'max_connections=1000'
     environment:
-      CHAIN_ID: ${CHAIN_ID}
-      GENESIS_ADDRESS: ${GENESIS_ADDRESS}
-      GENESIS_BALANCE: ${GENESIS_BALANCE}
-      GENESIS_PRIVATE_KEY: ${GENESIS_PRIVATE_KEY}
-      GETH_HOST: ${GETH_HOST}
-      JWT_SECRET: ${JWT_SECRET}
-      ROME_GASOMETER_URL: ${GASOMETER_HOST}
-      AIRDROP_TITLE: ${AIRDROP_TITLE}
+      POSTGRES_DB: test_rollup
+      POSTGRES_USER: hercules
+      POSTGRES_PASSWORD: qwerty123
+    hostname: postgres
     volumes:
-      - /etc/letsencrypt/live/${GETH_HOST}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
-      - /etc/letsencrypt/live/${GETH_HOST}/privkey.pem:/etc/nginx/ssl/selfsigned.key
-    ports:
-      - 443:443
-      - 8545:8545
-      - 8546:8546
-      - 8551:8551
-      - 3000:3000
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ CMD-SHELL, "pg_isready -h postgres -p 5432" ]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    expose:
+      - 5432
     networks:
       - net
 
-  rhea:
-    container_name: rhea
-    image: romelabs/rome-apps:${RHEA_TAG:-latest}
-    hostname: rhea
+  apply_migrations:
+    container_name: apply_migrations
+    image: romeprotocol/rome-apps:${HERCULES_TAG:-pg-storage}
     environment:
-      SERVICE_NAME: rhea
-      RHEA_CONFIG: /opt/rhea-config.yml
-    volumes:
-      - ./cfg/rhea-config.yml:/opt/rhea-config.yml
-      - ./keys/rhea-sender.json:/opt/rhea-sender.json
-      - ./keys/rhea-sender-2.json:/opt/rhea-sender-2.json
-      - ./keys/rhea-sender-3.json:/opt/rhea-sender-3.json
+      SERVICE_NAME: apply_migrations
+      DATABASE_URL: "postgres://hercules:qwerty123@postgres/test_rollup"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - net
 
   proxy:
     container_name: proxy
-    image: romelabs/rome-apps:${PROXY_TAG:-latest}
+    image: romeprotocol/rome-apps:${PROXY_TAG:-latest}
     hostname: proxy
     environment:
       SERVICE_NAME: proxy
@@ -103,6 +65,62 @@ services:
       - 9090:9090
     expose:
       - "9090"
+    networks:
+      - net
+
+  geth:
+    container_name: geth
+    image: romeprotocol/rollup-op-geth:${GETH_TAG:-latest}
+    hostname: geth
+    environment:
+      CHAIN_ID: ${CHAIN_ID}
+      GENESIS_ADDRESS: ${GENESIS_ADDRESS}
+      GENESIS_BALANCE: ${GENESIS_BALANCE}
+      GENESIS_PRIVATE_KEY: ${GENESIS_PRIVATE_KEY}
+      GETH_HOST: ${GETH_HOST}
+      JWT_SECRET: ${JWT_SECRET}
+      ROME_GASOMETER_URL: ${GASOMETER_HOST}
+      AIRDROP_TITLE: ${AIRDROP_TITLE}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
+      RECAPTCHA_SITE_SECRET: ${RECAPTCHA_SITE_SECRET}
+    # volumes:
+    #   - /etc/letsencrypt/live/${DOMAIN}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
+    #   - /etc/letsencrypt/live/${DOMAIN}/privkey.pem:/etc/nginx/ssl/selfsigned.key
+    ports:
+      - 443:443
+      - 8545:8545
+      - 8546:8546
+      - 8551:8551
+      - 3000:3000
+    networks:
+      - net
+      
+  hercules:
+    container_name: hercules
+    image: romeprotocol/rome-apps:${HERCULES_TAG:-latest}
+    hostname: hercules
+    environment:
+      SERVICE_NAME: hercules
+      HERCULES_CONFIG: /opt/hercules-config.yml
+    volumes:
+      - ./cfg/hercules-config.yml:/opt/hercules-config.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - net
+
+  rhea:
+    container_name: rhea
+    image: romeprotocol/rome-apps:${RHEA_TAG:-latest}
+    hostname: rhea
+    environment:
+      SERVICE_NAME: rhea
+      RHEA_CONFIG: /opt/rhea-config.yml
+    volumes:
+      - ./cfg/rhea-config.yml:/opt/rhea-config.yml
+      - ./keys/rhea-sender.json:/opt/rhea-sender.json
+      - ./keys/rhea-sender-2.json:/opt/rhea-sender-2.json
+      - ./keys/rhea-sender-3.json:/opt/rhea-sender-3.json
     networks:
       - net
 
