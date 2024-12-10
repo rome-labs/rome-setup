@@ -1,7 +1,7 @@
 services:
   create_balance:
     container_name: create_balance
-    image: romeprotocol/rome-apps:${CLI_TAG:-latest}
+    image: romelabs/rome-apps:${CLI_TAG:-latest}
     environment:
       SOLANA_RPC: ${SOLANA_RPC}
       CHAIN_ID: ${CHAIN_ID}
@@ -40,7 +40,7 @@ services:
 
   apply_migrations:
     container_name: apply_migrations
-    image: romeprotocol/rome-apps:${HERCULES_TAG:-pg-storage}
+    image: romelabs/rome-apps:${HERCULES_TAG:-pg-storage}
     environment:
       SERVICE_NAME: apply_migrations
       DATABASE_URL: "postgres://hercules:qwerty123@postgres/test_rollup"
@@ -51,7 +51,7 @@ services:
 
   proxy:
     container_name: proxy
-    image: romeprotocol/rome-apps:${PROXY_TAG:-latest}
+    image: romelabs/rome-apps:${PROXY_TAG:-latest}
     hostname: proxy
     environment:
       SERVICE_NAME: proxy
@@ -70,7 +70,7 @@ services:
 
   geth:
     container_name: geth
-    image: romeprotocol/rollup-op-geth:${GETH_TAG:-latest}
+    image: romelabs/rollup-op-geth:${GETH_TAG:-latest}
     hostname: geth
     environment:
       CHAIN_ID: ${CHAIN_ID}
@@ -97,7 +97,7 @@ services:
       
   hercules:
     container_name: hercules
-    image: romeprotocol/rome-apps:${HERCULES_TAG:-latest}
+    image: romelabs/rome-apps:${HERCULES_TAG:-latest}
     hostname: hercules
     environment:
       SERVICE_NAME: hercules
@@ -111,7 +111,7 @@ services:
 
   rhea:
     container_name: rhea
-    image: romeprotocol/rome-apps:${RHEA_TAG:-latest}
+    image: romelabs/rome-apps:${RHEA_TAG:-latest}
     hostname: rhea
     environment:
       SERVICE_NAME: rhea
