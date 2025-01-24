@@ -12,3 +12,4 @@ payers:
 geth_indexer:
   geth_http_addr: "http://geth:8545"
   geth_poll_interval_ms: 100
+mempool_ttl: 15 # (Seconds) Value higher of comparable to real op-geth TTL will prevent rhea from repeated sending

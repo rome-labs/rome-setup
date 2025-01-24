@@ -16,17 +16,17 @@ services:
     networks:
       - net
 
-  postgres:
-    container_name: postgres
+  postgres_rome:
+    container_name: postgres_rome
     image: postgres:15
     command: postgres -c 'max_connections=1000'
     environment:
       POSTGRES_DB: test_rollup
       POSTGRES_USER: hercules
       POSTGRES_PASSWORD: qwerty123
-    hostname: postgres
+    hostname: postgres_rome
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: [ CMD-SHELL, "pg_isready -h postgres -p 5432" ]
       interval: 3s
@@ -40,10 +40,10 @@ services:
 
   apply_migrations:
     container_name: apply_migrations
-    image: romelabs/rome-apps:${HERCULES_TAG:-pg-storage}
+    image: romelabs/rome-apps:${HERCULES_TAG:-latest}
     environment:
       SERVICE_NAME: apply_migrations
-      DATABASE_URL: "postgres://hercules:qwerty123@postgres/test_rollup"
+      DATABASE_URL: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -80,21 +80,39 @@ services:
       GETH_HOST: ${GETH_HOST}
       JWT_SECRET: ${JWT_SECRET}
       ROME_GASOMETER_URL: ${GASOMETER_HOST}
-      AIRDROP_TITLE: ${AIRDROP_TITLE}
-      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
-      RECAPTCHA_SITE_SECRET: ${RECAPTCHA_SITE_SECRET}
-    # volumes:
-    #   - /etc/letsencrypt/live/${DOMAIN}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
-    #   - /etc/letsencrypt/live/${DOMAIN}/privkey.pem:/etc/nginx/ssl/selfsigned.key
+      GETH_BASE_DATA_DIR: /opt/geth
+    volumes:
+      - ./geth:/opt/geth
+      # - /etc/letsencrypt/live/${DOMAIN}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
+      # - /etc/letsencrypt/live/${DOMAIN}/privkey.pem:/etc/nginx/ssl/selfsigned.key
     ports:
       - 443:443
       - 8545:8545
       - 8546:8546
       - 8551:8551
+    networks:
+      - net
+
+  faucet:
+    container_name: faucet
+    image: romelabs/rome-faucet:${FAUCET_TAG:-latest}
+    hostname: faucet
+    environment:
+      HTTP_ADDR:  ${HTTP_ADDR}
+      AIRDROP_TITLE: ${AIRDROP_TITLE}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
+      RECAPTCHA_SITE_SECRET: ${RECAPTCHA_SITE_SECRET}
+      AIRDROP_ADDRESS: ${AIRDROP_ADDRESS}
+      AIRDROP_PRIVATE_KEY: ${AIRDROP_PRIVATE_KEY}
+    # volumes:
+      # - /etc/letsencrypt/live/${DOMAIN}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
+      # - /etc/letsencrypt/live/${DOMAIN}/privkey.pem:/etc/nginx/ssl/selfsigned.key
+    ports:
+      - 2000:443
       - 3000:3000
     networks:
       - net
-      
+
   hercules:
     container_name: hercules
     image: romelabs/rome-apps:${HERCULES_TAG:-latest}
@@ -106,6 +124,8 @@ services:
       - ./cfg/hercules-config.yml:/opt/hercules-config.yml
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    ports:
+      - 8000:8000
     networks:
       - net
 

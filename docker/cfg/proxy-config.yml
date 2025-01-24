@@ -6,10 +6,14 @@ solana:
   commitment: "confirmed"
 payers:
   - payer_keypair: "/opt/proxy-sender.json"
-    number_holders: 4
+    number_holders: 1
   - payer_keypair: "/opt/proxy-sender-2.json"
-    number_holders: 16
+    number_holders: 1
   - payer_keypair: "/opt/proxy-sender-3.json"
     number_holders: 64
+ethereum_storage:
+  type: "pg_storage"
+  database_url: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
+  max_connections: 16
 proxy_host: "0.0.0.0:9090"
 max_slot_history: 4096
