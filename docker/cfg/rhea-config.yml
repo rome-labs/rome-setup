@@ -4,11 +4,14 @@ solana:
   rpc_url: "http://solana:8899"
 payers:
   - payer_keypair: "/opt/rhea-sender.json"
-    number_holders: 4
+    fee_recipients:
+      - 0xC185E444674aF38251c233c9943Ed8ef82da608a
   - payer_keypair: "/opt/rhea-sender-2.json"
-    number_holders: 16
+    fee_recipients:
+      - 0xE3f5421821ADB63e16Ccecbb191377832DC7d1cc
   - payer_keypair: "/opt/rhea-sender-3.json"
-    number_holders: 64
+    fee_recipients:
+      - 0xb02951F22e88A646635159efadC1f6F237F06793
 geth_indexer:
   geth_http_addr: "http://geth:8545"
   geth_poll_interval_ms: 100

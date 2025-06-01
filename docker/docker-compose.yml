@@ -1,24 +1,15 @@
+x-logging-config: &logging-config
+  driver: "json-file"
+  options:
+    max-size: "2g"
+    max-file: "2"
+
 services:
-  create_balance:
-    container_name: create_balance
-    image: romelabs/rome-apps:${CLI_TAG:-latest}
-    environment:
-      SOLANA_RPC: ${SOLANA_RPC}
-      CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli-deploy.sh
-      COMMAND: create-balance
-      ADDRESS: ${GENESIS_ADDRESS}
-      BALANCE: ${GENESIS_BALANCE}
-      PROGRAM_ID: ${PROGRAM_ID}
-      KEYPAIR: /opt/rollup-owner-keypair.json
-    volumes:
-      - ./keys/rollup-owner-keypair.json:/opt/rollup-owner-keypair.json
-    networks:
-      - net
 
   postgres_rome:
     container_name: postgres_rome
     image: postgres:15
+    logging: *logging-config
     command: postgres -c 'max_connections=1000'
     environment:
       POSTGRES_DB: test_rollup
@@ -41,6 +32,7 @@ services:
   apply_migrations:
     container_name: apply_migrations
     image: romelabs/rome-apps:${HERCULES_TAG:-latest}
+    logging: *logging-config
     environment:
       SERVICE_NAME: apply_migrations
       DATABASE_URL: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
@@ -52,6 +44,7 @@ services:
   proxy:
     container_name: proxy
     image: romelabs/rome-apps:${PROXY_TAG:-latest}
+    logging: *logging-config
     hostname: proxy
     environment:
       SERVICE_NAME: proxy
@@ -71,51 +64,29 @@ services:
   geth:
     container_name: geth
     image: romelabs/rollup-op-geth:${GETH_TAG:-latest}
+    logging: *logging-config
     hostname: geth
     environment:
       CHAIN_ID: ${CHAIN_ID}
       GENESIS_ADDRESS: ${GENESIS_ADDRESS}
-      GENESIS_BALANCE: ${GENESIS_BALANCE}
-      GENESIS_PRIVATE_KEY: ${GENESIS_PRIVATE_KEY}
-      GETH_HOST: ${GETH_HOST}
+      GENESIS_BALANCE: 0
       JWT_SECRET: ${JWT_SECRET}
       ROME_GASOMETER_URL: ${GASOMETER_HOST}
       GETH_BASE_DATA_DIR: /opt/geth
     volumes:
       - ./geth:/opt/geth
-      # - /etc/letsencrypt/live/${DOMAIN}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
-      # - /etc/letsencrypt/live/${DOMAIN}/privkey.pem:/etc/nginx/ssl/selfsigned.key
     ports:
-      - 443:443
+      # - 443:443
       - 8545:8545
       - 8546:8546
       - 8551:8551
     networks:
       - net
 
-  faucet:
-    container_name: faucet
-    image: romelabs/rome-faucet:${FAUCET_TAG:-latest}
-    hostname: faucet
-    environment:
-      HTTP_ADDR:  ${HTTP_ADDR}
-      AIRDROP_TITLE: ${AIRDROP_TITLE}
-      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
-      RECAPTCHA_SITE_SECRET: ${RECAPTCHA_SITE_SECRET}
-      AIRDROP_ADDRESS: ${AIRDROP_ADDRESS}
-      AIRDROP_PRIVATE_KEY: ${AIRDROP_PRIVATE_KEY}
-    # volumes:
-      # - /etc/letsencrypt/live/${DOMAIN}/fullchain.pem:/etc/nginx/ssl/selfsigned.crt
-      # - /etc/letsencrypt/live/${DOMAIN}/privkey.pem:/etc/nginx/ssl/selfsigned.key
-    ports:
-      - 2000:443
-      - 3000:3000
-    networks:
-      - net
-
   hercules:
     container_name: hercules
     image: romelabs/rome-apps:${HERCULES_TAG:-latest}
+    logging: *logging-config
     hostname: hercules
     environment:
       SERVICE_NAME: hercules
@@ -132,6 +103,7 @@ services:
   rhea:
     container_name: rhea
     image: romelabs/rome-apps:${RHEA_TAG:-latest}
+    logging: *logging-config
     hostname: rhea
     environment:
       SERVICE_NAME: rhea
@@ -141,6 +113,33 @@ services:
       - ./keys/rhea-sender.json:/opt/rhea-sender.json
       - ./keys/rhea-sender-2.json:/opt/rhea-sender-2.json
       - ./keys/rhea-sender-3.json:/opt/rhea-sender-3.json
+    networks:
+      - net
+
+  depositui:
+    container_name: depositui
+    image: romelabs/rome-deposit-ui:${DEPOSIT_UI_TAG:-latest}
+    logging: *logging-config
+    hostname: depositui
+    volumes:
+      - ./depositui/env.example:/app/.env
+    ports:
+      - 3000:3000
+    networks:
+      - net
+    
+  romenginx:
+    container_name: romenginx
+    image: nginx:latest
+    logging: *logging-config
+    hostname: romenginx
+    ports:
+      - "2000:2000"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /home/ubuntu/ssl/ssl.crt:/etc/nginx/ssl/selfsigned.crt:ro
+      - /home/ubuntu/ssl/ssl.key:/etc/nginx/ssl/selfsigned.key:ro
     networks:
       - net
 

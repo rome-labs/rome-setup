@@ -6,14 +6,19 @@ solana:
   commitment: "confirmed"
 payers:
   - payer_keypair: "/opt/proxy-sender.json"
-    number_holders: 1
+    fee_recipients:
+      - 0xB515207148c409075D0048247bfdDd8399072A14
   - payer_keypair: "/opt/proxy-sender-2.json"
-    number_holders: 1
+    fee_recipients:
+      - 0x77e0e2fe097cFa5138b7f5e38359A7C0EbFcD8F7
   - payer_keypair: "/opt/proxy-sender-3.json"
-    number_holders: 64
+    fee_recipients:
+      - 0x96Db8A1929e01d2cBb149d55F8c0774FF873Bc02
 ethereum_storage:
   type: "pg_storage"
-  database_url: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
-  max_connections: 16
+  connection:
+    database_url: "postgres://hercules:qwerty123@postgres/test_rollup"
+    max_connections: 16
 proxy_host: "0.0.0.0:9090"
 max_slot_history: 4096
+gas_price: 1000000000
