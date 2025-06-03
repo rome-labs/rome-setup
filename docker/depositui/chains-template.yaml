@@ -1,0 +1,9 @@
+- name: "Local chain"
+  chainId: "1001"
+  rpcUrl: "https://localhost"
+  explorerUrl: "https://localhost:1000"
+  contracts:
+    uniswapV2Factory: "0x54C4C8eFe05EA40c0de1ef2608aDf32A3C2e019c"
+    uniswapV2Router: "0x44c256191409A855b66f609676818b537Fd0b86e"
+    weth: "0x33932D72AA77E1De7cB173bB88C46080c731Dd39"
+    multicall: "0x54C4C8eFe05EA40c0de1ef2608aDf32A3C2e019c"

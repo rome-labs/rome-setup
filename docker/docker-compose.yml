@@ -123,6 +123,7 @@ services:
     hostname: depositui
     volumes:
       - ./depositui/env.example:/app/.env
+      - ./depositui/chains-template.yaml:/app/chains.yaml
     ports:
       - 3000:3000
     networks:
