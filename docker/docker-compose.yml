@@ -118,19 +118,18 @@ services:
 
   deposit:
     container_name: deposit
-    image: romeprotocol/rome-apps:${CLI_TAG:-latest}
+    image: romelabs/rome-apps:${CLI_TAG:-latest}
     logging: *logging-config
     environment:
       SOLANA_RPC: ${SOLANA_RPC}
       CHAIN_ID: ${CHAIN_ID}
       SERVICE_NAME: cli.sh
       COMMAND: deposit
-      ADDRESS: ${ETH_DEPOST_ADDRESS}
-      BALANCE: ${ETH_DEPOST_GWEI}
+      ADDRESS: ${ETH_DEPOSIT_ADDRESS}
+      BALANCE: ${ETH_DEPOSIT_GWEI}
       PROGRAM_ID: ${PROGRAM_ID}
-      KEYPAIR: /opt/keys/source-account-keypair.json
+      KEYPAIR: /opt/source-account-keypair.json
     volumes:
-      - ./keys:/opt/keys
       - ./keys/source-account-keypair.json:/opt/source-account-keypair.json
     networks:
       - net
