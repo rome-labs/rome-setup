@@ -1,0 +1,4 @@
+- name: "Local chain"
+  chainId: "1001"
+  rpcUrl: "http://localhost:8545"
+  explorerUrl: "http://localhost:1000"

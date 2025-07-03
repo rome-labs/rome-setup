@@ -6,161 +6,172 @@ x-logging-config: &logging-config
 
 services:
 
-  postgres_rome:
-    container_name: postgres_rome
-    image: postgres:15
-    logging: *logging-config
-    command: postgres -c 'max_connections=1000'
-    environment:
-      POSTGRES_DB: test_rollup
-      POSTGRES_USER: hercules
-      POSTGRES_PASSWORD: qwerty123
-    hostname: postgres_rome
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ CMD-SHELL, "pg_isready -h postgres -p 5432" ]
-      interval: 3s
-      timeout: 3s
-      retries: 10
-      start_period: 5s
-    expose:
-      - 5432
-    networks:
-      - net
-
-  apply_migrations:
-    container_name: apply_migrations
-    image: romelabs/rome-apps:${HERCULES_TAG:-latest}
-    logging: *logging-config
-    environment:
-      SERVICE_NAME: apply_migrations
-      DATABASE_URL: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - net
-
-  proxy:
-    container_name: proxy
-    image: romelabs/rome-apps:${PROXY_TAG:-latest}
-    logging: *logging-config
-    hostname: proxy
-    environment:
-      SERVICE_NAME: proxy
-      PROXY_CONFIG: /opt/proxy-config.yml
-    volumes:
-      - ./cfg/proxy-config.yml:/opt/proxy-config.yml
-      - ./keys/proxy-sender.json:/opt/proxy-sender.json
-      - ./keys/proxy-sender-2.json:/opt/proxy-sender-2.json
-      - ./keys/proxy-sender-3.json:/opt/proxy-sender-3.json
-    ports:
-      - 9090:9090
-    expose:
-      - "9090"
-    networks:
-      - net
-
   geth:
-    container_name: geth
-    image: romelabs/rollup-op-geth:${GETH_TAG:-latest}
+    image: romelabs/rollup-op-geth:${GETH_TAG:-main}
     logging: *logging-config
     hostname: geth
+    container_name: geth
     environment:
-      CHAIN_ID: ${CHAIN_ID}
-      GENESIS_ADDRESS: ${GENESIS_ADDRESS}
-      GENESIS_BALANCE: 0
-      JWT_SECRET: ${JWT_SECRET}
-      ROME_GASOMETER_URL: ${GASOMETER_HOST}
+      CHAIN_ID: '9999'
+      JWT_SECRET: 'ad314eb6ce7a0ac9e9bd96051e97cd580732eaab32c5f328694e1b95fe6fe059'
+      ROME_GASOMETER_URL: http://proxy_rome:9090
       GETH_BASE_DATA_DIR: /opt/geth
+
     volumes:
       - ./geth:/opt/geth
     ports:
-      # - 443:443
       - 8545:8545
       - 8546:8546
       - 8551:8551
     networks:
       - net
+    depends_on:
+      proxy_rome:
+        condition: service_healthy
+    healthcheck:
+      test: [
+        CMD-SHELL,
+        "curl --location 'localhost:8545' --header 'Content-Type: application/json' --data '{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":83}'"
+      ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+
+  postgres_rome:
+    image: postgres:15
+    logging: *logging-config
+    hostname: postgres_rome
+    container_name: postgres_rome
+    command: postgres -c 'max_connections=1000'
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: hercules
+      POSTGRES_PASSWORD: qwerty123
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./pg_rome/init-multiple-dbs.sql:/docker-entrypoint-initdb.d/init-multiple-dbs.sql:ro
+
+    healthcheck:
+      test: [ CMD-SHELL, "pg_isready -h postgres_rome -p 5432" ]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    ports:
+      - 5432:5432
+    networks:
+      - net
+
+  apply_migrations:
+    image: romelabs/rome-apps:${ROME_APPS_TAG:-main}
+    logging: *logging-config
+    container_name: apply_migrations
+    environment:
+      SERVICE_NAME: apply_migrations
+      DATABASE_URL: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
+    networks:
+      - net
+    depends_on:
+      postgres_rome:
+        condition: service_healthy
 
   hercules:
-    container_name: hercules
-    image: romelabs/rome-apps:${HERCULES_TAG:-latest}
+    image: romelabs/rome-apps:${ROME_APPS_TAG:-main}
     logging: *logging-config
+    container_name: hercules
     hostname: hercules
     environment:
       SERVICE_NAME: hercules
-      HERCULES_CONFIG: /opt/hercules-config.yml
+      HERCULES_CONFIG: /opt/cfg/hercules-config.yml
     volumes:
-      - ./cfg/hercules-config.yml:/opt/hercules-config.yml
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - ./cfg:/opt/cfg
     ports:
       - 8000:8000
     networks:
       - net
+    depends_on:
+      postgres_rome:
+        condition: service_healthy
+      apply_migrations:
+        condition: service_completed_successfully
+      geth:
+        condition: service_healthy
 
   rhea:
-    container_name: rhea
-    image: romelabs/rome-apps:${RHEA_TAG:-latest}
+    image: romelabs/rome-apps:${ROME_APPS_TAG:-main}
     logging: *logging-config
     hostname: rhea
+    container_name: rhea
     environment:
       SERVICE_NAME: rhea
-      RHEA_CONFIG: /opt/rhea-config.yml
+      RHEA_CONFIG: ${RHEA_CONFIG:-/opt/cfg/rhea-config.yml}
     volumes:
-      - ./cfg/rhea-config.yml:/opt/rhea-config.yml
-      - ./keys/rhea-sender.json:/opt/rhea-sender.json
-      - ./keys/rhea-sender-2.json:/opt/rhea-sender-2.json
-      - ./keys/rhea-sender-3.json:/opt/rhea-sender-3.json
+      - ./keys:/opt/keys
+      - ./cfg:/opt/cfg
     networks:
       - net
-
-  deposit:
-    container_name: deposit
-    image: romelabs/rome-apps:${CLI_TAG:-latest}
+    depends_on:
+      hercules:
+        condition: service_started
+      geth:
+        condition: service_healthy
+        
+  proxy_rome:
+    image: romelabs/rome-apps:${ROME_APPS_TAG:-main}
     logging: *logging-config
+    hostname: proxy_rome
+    container_name: proxy_rome
     environment:
-      SOLANA_RPC: ${SOLANA_RPC}
-      CHAIN_ID: ${CHAIN_ID}
-      SERVICE_NAME: cli.sh
-      COMMAND: deposit
-      ADDRESS: ${ETH_DEPOSIT_ADDRESS}
-      BALANCE: ${ETH_DEPOSIT_GWEI}
-      PROGRAM_ID: ${PROGRAM_ID}
-      KEYPAIR: /opt/source-account-keypair.json
+      SERVICE_NAME: proxy
+      PROXY_CONFIG: ${PROXY_CONFIG:-/opt/cfg/proxy-config.yml}
     volumes:
-      - ./keys/source-account-keypair.json:/opt/source-account-keypair.json
+      - ./keys:/opt/keys
+      - ./cfg:/opt/cfg
+    ports:
+      - 9090:9090
     networks:
       - net
+    depends_on:
+      postgres_rome:
+        condition: service_healthy
+    healthcheck:
+      test: [
+        CMD-SHELL,
+        "curl --location 'proxy_rome:9090' --header 'Content-Type: application/json' --data '{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":83}'"
+      ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
 
   depositui:
     container_name: depositui
-    image: romelabs/rome-deposit-ui:${DEPOSIT_UI_TAG:-latest}
+    image: romelabs/rome-deposit-ui:transfer
     logging: *logging-config
     hostname: depositui
     volumes:
-      - ./depositui/env.example:/app/.env
-      - ./depositui/chains-template.yaml:/app/chains.yaml
+      - ./depositui/env.depositui:/app/.env
+      - ./depositui/chains.yml:/app/chains.yaml
     ports:
       - 3000:3000
     networks:
       - net
-    
-  romenginx:
-    container_name: romenginx
-    image: nginx:latest
-    logging: *logging-config
-    hostname: romenginx
-    ports:
-      - "2000:2000"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /home/ubuntu/ssl/ssl.crt:/etc/nginx/ssl/selfsigned.crt:ro
-      - /home/ubuntu/ssl/ssl.key:/etc/nginx/ssl/selfsigned.key:ro
-    networks:
-      - net
+
+  # romenginx:
+  #   container_name: romenginx
+  #   image: nginx:latest
+  #   logging: *logging-config
+  #   hostname: romenginx
+  #   ports:
+  #     - "2000:2000"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - /home/ubuntu/ssl/ssl.crt:/etc/nginx/ssl/selfsigned.crt:ro
+  #     - /home/ubuntu/ssl/ssl.key:/etc/nginx/ssl/selfsigned.key:ro
+  #   networks:
+  #     - net
 
 networks:
   net:

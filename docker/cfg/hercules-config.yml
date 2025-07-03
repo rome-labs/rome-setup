@@ -1,5 +1,8 @@
+start_slot: 390300819
+admin_rpc: "0.0.0.0:8000"
+mode: Indexer
 block_loader:
-  program_id: "CmobH2vR6aUtQ8x4xd1LYNiH6k2G7PFT5StTgWqvy2VU"
+  program_id: "RPDLj7hwcWEpQ4S3fExgsxMruc4BfuUUts69i9BdhKq"
   batch_size: 64
   block_retries: 100
   tx_retries: 100
@@ -8,30 +11,20 @@ block_loader:
   client:
     providers:
       - "http://solana:8899"
-start_slot: 0
-solana_storage:
-  type: pg_storage
+storage:
   connection:
-    database_url: "postgres://hercules:qwerty123@postgres/test_rollup"
+    database_url: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
     max_connections: 16
     connection_timeout_sec: 30
-block_parser:
-  program_id: "CmobH2vR6aUtQ8x4xd1LYNiH6k2G7PFT5StTgWqvy2VU"
-  chain_id: 1001
-  parse_mode: engine_api
-ethereum_storage:
-  type: pg_storage
-  connection:
-    database_url: "postgres://hercules:qwerty123@postgres/test_rollup"
-    max_connections: 16
-    connection_timeout_sec: 30
-block_producer:
-  type: engine_api
-  geth_engine:
-    geth_engine_addr: "http://geth:8551"
-    geth_engine_secret: "a535c9f4f9df8e00cd6a15a7baa74bb92ca47ebdf59b6f3f2d8a8324b6c1767c"
-  geth_api: "http://geth:8545"
-admin_rpc: "0.0.0.0:8000"
-max_slot_history: 4096
-block_loader_batch_size: 128
-mode: Indexer
+rollup_indexer:
+  max_slot_history: 4096
+  block_parser:
+    program_id: "RPDLj7hwcWEpQ4S3fExgsxMruc4BfuUUts69i9BdhKq"
+    chain_id: 1001
+    parse_mode: engine_api
+  block_producer:
+    type: engine_api
+    geth_engine:
+      geth_engine_addr: "http://geth:8551"
+      geth_engine_secret: "a535c9f4f9df8e00cd6a15a7baa74bb92ca47ebdf59b6f3f2d8a8324b6c1767c"
+    geth_api: "http://geth:8545"

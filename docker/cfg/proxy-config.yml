@@ -1,23 +1,17 @@
+program_id: "RPDLj7hwcWEpQ4S3fExgsxMruc4BfuUUts69i9BdhKq"
 chain_id: 1001
-program_id: "CmobH2vR6aUtQ8x4xd1LYNiH6k2G7PFT5StTgWqvy2VU"
-start_slot: 0
+start_slot: 390300819
 solana:
   rpc_url: "http://solana:8899"
   commitment: "confirmed"
 payers:
-  - payer_keypair: "/opt/proxy-sender.json"
+  - payer_keypair: "/opt/keys/proxy-sender.json"
     fee_recipients:
-      - 0xB515207148c409075D0048247bfdDd8399072A14
-  - payer_keypair: "/opt/proxy-sender-2.json"
-    fee_recipients:
-      - 0x77e0e2fe097cFa5138b7f5e38359A7C0EbFcD8F7
-  - payer_keypair: "/opt/proxy-sender-3.json"
-    fee_recipients:
-      - 0x96Db8A1929e01d2cBb149d55F8c0774FF873Bc02
+      - 0x5f5d351dB427d1131D8Dcd4F151185E6E6111907
 ethereum_storage:
   type: "pg_storage"
   connection:
-    database_url: "postgres://hercules:qwerty123@postgres/test_rollup"
+    database_url: "postgres://hercules:qwerty123@postgres_rome/test_rollup"
     max_connections: 16
 proxy_host: "0.0.0.0:9090"
 max_slot_history: 4096
