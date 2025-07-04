@@ -9,10 +9,10 @@ export SOLANA_RPC=https://node1.devnet-eu-sol-api.devnet.romeprotocol.xyz
 export JWT_SECRET=a535c9f4f9df8e00cd6a15a7baa74bb92ca47ebdf59b6f3f2d8a8324b6c1767c
 export PROGRAM_ID=RPDwFyw4ekzzgyJfSrVmJgmfi51ovyqzLckYGchLpKX
 
-export ROME_EVM_TAG=main
-export ROME_APPS_TAG=main
-export DEPOSIT_UI_TAG=main
-export GETH_TAG=main
+export ROME_EVM_TAG=v1.0.1
+export ROME_APPS_TAG=v1.0.1
+export DEPOSIT_UI_TAG=v1.0.1
+export GETH_TAG=v1.0.1
 
 # --------- PATH SETUP ---------
 DOCKER_DIR="docker"

@@ -1,5 +1,5 @@
 chain_id: 1001
-program_id: "RPDLj7hwcWEpQ4S3fExgsxMruc4BfuUUts69i9BdhKq"
+program_id: "RPDwFyw4ekzzgyJfSrVmJgmfi51ovyqzLckYGchLpKX"
 rpc_urls: ["http://solana:8899"]
 commitment: "confirmed"    
 payers:

@@ -147,7 +147,7 @@ services:
 
   depositui:
     container_name: depositui
-    image: romelabs/rome-deposit-ui:transfer
+    image: romelabs/rome-deposit-ui:${DEPOSIT_UI_TAG:-main}
     logging: *logging-config
     hostname: depositui
     volumes:

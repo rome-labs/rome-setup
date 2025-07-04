@@ -2,7 +2,7 @@ start_slot: 390300819
 admin_rpc: "0.0.0.0:8000"
 mode: Indexer
 block_loader:
-  program_id: "RPDLj7hwcWEpQ4S3fExgsxMruc4BfuUUts69i9BdhKq"
+  program_id: "RPDwFyw4ekzzgyJfSrVmJgmfi51ovyqzLckYGchLpKX"
   batch_size: 64
   block_retries: 100
   tx_retries: 100
@@ -19,7 +19,7 @@ storage:
 rollup_indexer:
   max_slot_history: 4096
   block_parser:
-    program_id: "RPDLj7hwcWEpQ4S3fExgsxMruc4BfuUUts69i9BdhKq"
+    program_id: "RPDwFyw4ekzzgyJfSrVmJgmfi51ovyqzLckYGchLpKX"
     chain_id: 1001
     parse_mode: engine_api
   block_producer:
