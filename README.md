@@ -21,7 +21,7 @@ Please make sure `docker`, `dockper compose` is installed on your local machine/
 sudo chmod +x l2_setup.sh
 ./l2_setup.sh
 ```
-10. Open http://localhost:2000 deposit UI. First time it might take few minutes and if you see some error just refresh web browser.
+10. Open http://localhost:3000 deposit UI. First time it might take few minutes and if you see some error just refresh web browser.
 
 
 ***Setup Explorer (Romescout)***
