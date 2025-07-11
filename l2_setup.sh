@@ -5,7 +5,7 @@ export CHAIN_ID=1001
 export SOLANA_START_SLOT=390300819
 export RHEA_GAS_RECIPIENT=0xf0e0CA2704D047A7Af27AafAc6D70e995520C2B2
 export PROXY_GAS_RECIPIENT=0xf0e0CA2704D047A7Af27AafAc6D70e995520C2B2
-export SOLANA_RPC=https://node1.devnet-eu-sol-api.devnet.romeprotocol.xyz
+export SOLANA_RPC=https://node3.devnet-eu-sol-api.devnet.romeprotocol.xyz
 export JWT_SECRET=a535c9f4f9df8e00cd6a15a7baa74bb92ca47ebdf59b6f3f2d8a8324b6c1767c
 export PROGRAM_ID=RPDwFyw4ekzzgyJfSrVmJgmfi51ovyqzLckYGchLpKX
 
