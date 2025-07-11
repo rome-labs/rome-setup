@@ -1,13 +1,10 @@
-Update readme.md to open links in new window
-
 # Devnet Rome Stack Setup for Local Testing
 
 This repository provides scripts to set up the full Rome stack on your local machine, including services such as **Geth**, **Rhea**, **Proxy**, **Hercules**, **Deposit UI**, and **Explorer**.
 
-Please make sure `docker`, `dockper compose` is installed on your local machine/ server.
+Please make sure `docker` and `docker compose` are installed on your local machine or server.
 
----
-## quick setup
+## Quick Setup
 
 1. Clone this repo and `cd rome-setup`  
 2. Get Solana keypair from <a href="https://solana-keypair-generator.web.app/" target="_blank">solana-keypair-generator.web.app</a> (⚠️ not for production use) and create a Solana keypair.  
@@ -27,7 +24,7 @@ sudo chmod +x l2_setup.sh
 10. Open http://localhost:3000 deposit UI. First time it might take few minutes and if you see some error just refresh web browser.
 
 
-***Setup Explorer (Romescout)***
+**Setup Block Explorer (Romescout)**
 
 ```bash
 sudo chmod +x explorer_setup.sh
